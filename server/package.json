@@ -1,0 +1,25 @@
+{
+  "name": "manulife-demo-backend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "babel-eslint": "^8.2.5",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "jest": "^23.2.0",
+    "lodash": "^4.17.10",
+    "supertest": "^3.1.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --watchAll"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^17.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-jest": "^21.17.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.10.0"
+  }
+}

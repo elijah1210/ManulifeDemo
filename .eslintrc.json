@@ -1,0 +1,28 @@
+{
+    "extends": "airbnb",
+    "globals": {
+        "document": true,
+        "window": true
+    },
+    "plugins": [
+        "jest",
+        "react"
+    ],
+    "env": {
+        "jest": true
+    },
+    "parser": "babel-eslint",
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true,
+            "modules": true,
+            "experimentalObjectRestSpread": true
+        }
+    },
+    "rules" :{
+        "react/jsx-filename-extension": "off",
+        "linebreak-style": "off"
+    }
+}
