@@ -6,10 +6,14 @@ const helper = require('./app.helper');
 
 const app = express();
 
-app.use(express.static(path.join(__dirname, 'build')));
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'build')));
+}
+
 app.use(bodyParser.json());
 
-app.get('/api/sieve-number/:sieveNumber?', helper.sieveNumberHandler);
+app.post('/api/update-exchange-data-bulk', helper.updateDBBulkHandler);
+app.post('/api/update-exchange-data', helper.updateDBHandler);
 
 app.get('/', helper.defaultRouteHandler);
 

@@ -22,8 +22,8 @@
   font-size: large;
 }
 
-.App-inputs>Input {
-  padding-right: 10px;
+.App-inputs #appFilter {
+  padding-right: 15px;
 }
 
 @keyframes App-logo-spin {

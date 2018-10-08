@@ -1,9 +1,8 @@
 const assert = require('assert');
-const _ = require('lodash');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 
-
-const MAX_SIEVE = 10000000;
 /**
  * Client error handler.
  * @param {*} err Error object.
@@ -25,64 +24,107 @@ const clientErrorHandler = (err, req, res, next) => {
 };
 
 /**
- * Given a number, returns the array of prime numbers smaller than it.
- * @param {number} n Number that must be greater than 0.
+ * Initialize the db connection.
+ * @param {*} db Database object.
  */
-const eratosCalc = (n) => {
-  const array = [];
-  const limit = Math.sqrt(n);
-  const output = [];
-
-  for (let i = 0; i < n; i += 1) {
-    array.push(true);
-  }
-
-  for (let i = 2; i <= limit; i += 1) {
-    if (array[i]) {
-      for (let j = i * i; j < n; j += i) {
-        array[j] = false;
-      }
-    }
-  }
-
-  for (let i = 2; i < n; i += 1) {
-    if (array[i]) {
-      output.push(i);
-    }
-  }
-  return output;
+const initializeDb = (db) => {
+  db.run(`CREATE TABLE IF NOT EXISTS exchangeRatesUSD (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT UNIQUE,
+      AUD NUMERIC,
+      CAD NUMERIC,
+      EUR NUMERIC,
+      GBP NUMERIC)`);
 };
 
 /**
- * Given a sorted array of numbers, returns the median of the array.
- * @param {[number]} array Sorted array from smallest to largest.
+ * Inserts new record into the database.
+ * @param {*} db Database object.
+ * @param {*} row Request body for insertion.
  */
-const medianCalc = (array) => {
-  const output = [];
-  const half = Math.floor(array.length / 2);
+const insertOrIgnoreNewRow = async (db, row) => db.run(`
+  INSERT OR IGNORE INTO exchangeRatesUSD (
+            date, 
+            AUD, 
+            CAD, 
+            EUR, 
+            GBP) 
+          VALUES (
+            ?, 
+            ?, 
+            ?, 
+            ?, 
+            ?)`, [row.date, row.rates.AUD, row.rates.CAD, row.rates.EUR, row.rates.GBP],
+(err) => {
+  if (err) {
+    return false;
+  }
+  return true;
+});
 
-  if (array.length % 2) {
-    output.push(array[half]);
-  } else {
-    output.push(array[half - 1]);
-    output.push(array[half]);
+/**
+ * Handles updating the database.
+ * @param {*} req Request object.
+ * @param {*} res Response object.
+ */
+const updateDBHandler = (req, res) => {
+  assert(req.body, 'Body of the post must be provided.');
+  assert(req.body.date, 'Date rates were retrieved for must be provided.');
+  assert(req.body.rates, 'Object containing rates must be provided.');
+  assert(req.body.rates.hasOwnProperty('AUD')
+         && req.body.rates.hasOwnProperty('CAD')
+         && req.body.rates.hasOwnProperty('EUR')
+         && req.body.rates.hasOwnProperty('GBP'), 'Rates object was not properly formed.');
+  const dbExists = fs.existsSync('./server.db');
+  const db = new sqlite3.Database('./server.db');
+  // Don't bother creating the table if it already exists as it would have been created before.
+  if (!dbExists) {
+    initializeDb(db);
   }
 
-  return _.filter(output, element => !_.isNil(element)) || [];
+  // Check if the data already exists in the database and insert if it doesn't.
+  const success = insertOrIgnoreNewRow(db, req.body);
+  if (!success) {
+    db.close();
+    res.sendStatus(500);
+  }
+
+  // Close the db connection and return HTTP 200.
+  db.close();
+  res.sendStatus(200);
 };
 
-const sieveNumberHandler = (req, res) => {
-  assert(!_.isEmpty(req.params), 'Parameters must be provided.');
-  assert(!_.isNil(req.params.sieveNumber), 'Number to call the sieve algorithm must be provided.');
-  // Convert the passed value to a number.
-  const sieveNumber = _.toNumber(req.params.sieveNumber);
-  assert(_.isFinite(sieveNumber), 'Number to call the sieve algorithm must be finite.');
-  assert(sieveNumber > 0, 'Number to call the sieve algorithm must be greater than 0.');
-  assert(sieveNumber <= MAX_SIEVE, `Number for sieve algorithm must be less than ${MAX_SIEVE}.`);
+/**
+ * Handles bulk updating the database.
+ * @param {*} req Request object.
+ * @param {*} res Response object.
+ */
+const updateDBBulkHandler = (req, res) => {
+  assert(req.body, 'Body of the post must be provided.');
+  assert(req.body.length > 0, 'Body must have a length greater than 0.');
 
-  const output = medianCalc(eratosCalc(sieveNumber));
+  const resultArray = [];
+  const dbExists = fs.existsSync('./server.db');
+  const db = new sqlite3.Database('./server.db');
+  // Don't bother creating the table if it already exists as it would have been created before.
+  if (!dbExists) {
+    initializeDb(db);
+  }
+  // Run commands in series and not parallel in case of locks and multiple writes.
+  db.serialize(() => {
+    req.body.forEach((row) => {
+      resultArray.push(insertOrIgnoreNewRow(db, row));
+    });
+  });
 
-  res.json(output);
+  if (!resultArray.every(val => val)) {
+    db.close();
+    res.sendStatus(500);
+  }
+
+  // Close the db connection and return HTTP 200.
+  db.close();
+  res.sendStatus(200);
 };
 
 const defaultRouteHandler = (req, res) => {
@@ -91,9 +133,7 @@ const defaultRouteHandler = (req, res) => {
 
 module.exports = {
   clientErrorHandler,
-  medianCalc,
-  eratosCalc,
-  sieveNumberHandler,
+  updateDBHandler,
+  updateDBBulkHandler,
   defaultRouteHandler,
-  MAX_SIEVE,
 };

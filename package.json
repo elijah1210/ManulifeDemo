@@ -6,12 +6,9 @@
   "proxy": "http://localhost:8080",
   "scripts": {
     "frontend": "cd ./frontend && npm run start",
-    "frontend:test": "cd ./frontend && npm run test",
     "server": "cd ./server && node server.js",
-    "server:test": "cd ./server && npm run test",
     "start": "cross-os start",
-    "test": "cross-os test",
-    "update": "cross-os update",
+    "update": "npm i cross-os && cross-os update",
     "update:frontend": "cd ./frontend && npm i",
     "update:server": "cd ./server && npm i"
   },
@@ -19,10 +16,6 @@
     "start": {
       "win32": "start npm run frontend && start npm run server",
       "darwin": "ttab -w npm run frontend && ttab -w npm run server"
-    },
-    "test": {
-      "win32": "start npm run frontend:test && start npm run server:test",
-      "darwin": "ttab -w npm run frontend:test && ttab -w npm run server:test"
     },
     "update": {
       "win32": "npm i && npm run update:frontend && npm run update:server",
