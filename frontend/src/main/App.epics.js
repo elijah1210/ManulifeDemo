@@ -37,14 +37,17 @@ const dayInMilliseconds = 86400000;
  * @param {*} state$ State stream
  * @param {*} param2 Dependencies
  */
-export const getExchangeDataEpic = (action$, state$, { getJSON }) => action$.pipe(
+export const getExchangeDataEpic = (action$, state$, { get }) => action$.pipe(
   ofType(actions.getExchangeData.START),
   withLatestFrom(action$),
   mergeMap(([, action]) => {
     const { payload } = action;
     const dateString = formatDate(payload);
-    return getJSON(`https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`)
-      .pipe(
+    return get({
+      url: `https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`, 
+      responseType: 'json',
+      crossDomain: true,
+  }).pipe(
         mergeMap((response) => {
           const { base, date, rates } = response;
           return of(
@@ -87,7 +90,7 @@ export const updateDatabaseWithExchangeDataEpic = (action$, state$, { post }) =>
  * @param {*} state$ State stream
  * @param {*} param2 Dependencies
  */
-export const getHistoricalExchangeDataEpic = (action$, state$, { getJSON }) => action$.pipe(
+export const getHistoricalExchangeDataEpic = (action$, state$, { get }) => action$.pipe(
   ofType(actions.getHistoricalExchangeData.START),
   withLatestFrom(action$),
   mergeMap(([, action]) => {
@@ -96,7 +99,11 @@ export const getHistoricalExchangeDataEpic = (action$, state$, { getJSON }) => a
     const requests = [];
     for (let i = 0; i < 91; i += 1) {
       const dateString = formatDate(dateTime);
-      requests.push(getJSON(`https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`));
+      requests.push(get({
+        url: `https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`, 
+        responseType: 'json',
+        crossDomain: true,
+    }));
       dateTime -= dayInMilliseconds;
     }
     const request = of(requests);
