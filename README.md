@@ -24,5 +24,5 @@ Steps to run the application in Windows or Mac.
 - Host it on Heroku or Azure (It should be on heroku).
 - Evaluate for sql injection.
 - Table should take up the remaining height and not overflow.
-- Resolve CORS issue. Some default to https, therefore openrates api call should be https as well.
+- Resolve CORS issue. Browser may default to https, therefore openrates api call should be https as well.
 - Additionally, https requires CORS.
