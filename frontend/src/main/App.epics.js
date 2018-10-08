@@ -43,9 +43,7 @@ export const getExchangeDataEpic = (action$, state$, { getJSON }) => action$.pip
   mergeMap(([, action]) => {
     const { payload } = action;
     const dateString = formatDate(payload);
-    return getJSON(`https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`, {
-      'Access-Control-Allow-Origin': '*',
-    }).pipe(
+    return getJSON(`http://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`).pipe(
       mergeMap((response) => {
         const { base, date, rates } = response;
         return of(
@@ -97,9 +95,7 @@ export const getHistoricalExchangeDataEpic = (action$, state$, { getJSON }) => a
     const requests = [];
     for (let i = 0; i < 91; i += 1) {
       const dateString = formatDate(dateTime);
-      requests.push(getJSON(`https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`, {
-        'Access-Control-Allow-Origin': '*',
-      }));
+      requests.push(getJSON(`http://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`));
       dateTime -= dayInMilliseconds;
     }
     const request = of(requests);
