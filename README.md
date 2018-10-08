@@ -10,7 +10,10 @@ Steps to run the application in Windows or Mac.
 - Copy the server folder directly into the deployment folder.
 - Initialize heroku app and set it as a remote for pushing.
 - Run `npm run deploy-heroku` to push the production folder to the heroku remote.
-- Go to `<app_name>.herokuapp.com`.
+- Go to `http://<app_name>.herokuapp.com`.
+
+## To view on Heroku
+- Go to `http://jpl-manulife-demo.herokuapp.com`.
 
 ## List of Improvements
 - Column sorting.
@@ -20,3 +23,5 @@ Steps to run the application in Windows or Mac.
 - A graph tab for each currency.
 - Host it on Heroku or Azure (It should be on heroku).
 - Evaluate for sql injection.
+- Resolve CORS issue. Some default to https, therefore openrates api call should be https as well.
+- Additionally, https requires CORS.
