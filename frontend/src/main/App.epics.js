@@ -43,7 +43,7 @@ export const getExchangeDataEpic = (action$, state$, { getJSON }) => action$.pip
   mergeMap(([, action]) => {
     const { payload } = action;
     const dateString = formatDate(payload);
-    return getJSON(`http://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`)
+    return getJSON(`https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`)
       .pipe(
         mergeMap((response) => {
           const { base, date, rates } = response;
@@ -96,7 +96,7 @@ export const getHistoricalExchangeDataEpic = (action$, state$, { getJSON }) => a
     const requests = [];
     for (let i = 0; i < 91; i += 1) {
       const dateString = formatDate(dateTime);
-      requests.push(getJSON(`http://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`));
+      requests.push(getJSON(`https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`));
       dateTime -= dayInMilliseconds;
     }
     const request = of(requests);
@@ -140,31 +140,6 @@ export const updateDatabaseWithExchangeDataBulkEpic = (action$, state$, { post }
       );
   }),
 );
-
-/**
- * Epic middleware for retrieving the last 45 records persisted in the database.
- * @param {*} action$ Action stream
- * @param {*} state$ State stream
- * @param {*} param2 Dependencies
- */
-// export const getPersistedExchangeDataEpic = (action$, state$, { getJSON }) => action$.pipe(
-//   ofType(actions.getPersistedExchangeData.START),
-//   withLatestFrom(action$),
-//   mergeMap(([, action]) => {
-//     const { payload } = action;
-//     const dateString = formatDate(payload);
-//     return getJSON(`/api/get-persisted-data/${dateString}`)
-//       .pipe(
-//         mergeMap(response => of(
-//           actions.getPersistedExchangeData.success({
-//             ...response,
-//             dateLastUpdated: payload.toString(),
-//           }),
-//         )),
-//         catchError(error => of(actions.getExchangeData.failure(error.xhr.response))),
-//       );
-//   }),
-// );
 
 export default combineEpics(
   getExchangeDataEpic,
