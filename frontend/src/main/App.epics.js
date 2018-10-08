@@ -37,31 +37,29 @@ const dayInMilliseconds = 86400000;
  * @param {*} state$ State stream
  * @param {*} param2 Dependencies
  */
-export const getExchangeDataEpic = (action$, state$, { get }) => action$.pipe(
+export const getExchangeDataEpic = (action$, state$, { getJSON }) => action$.pipe(
   ofType(actions.getExchangeData.START),
   withLatestFrom(action$),
   mergeMap(([, action]) => {
     const { payload } = action;
     const dateString = formatDate(payload);
-    return get({
-      url: `https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`, 
-      responseType: 'json',
-      crossDomain: true,
-  }).pipe(
-        mergeMap((response) => {
-          const { base, date, rates } = response;
-          return of(
-            actions.getExchangeData.success({
-              base,
-              date,
-              ...rates,
-              dateLastUpdated: payload.toString(),
-            }),
-            actions.updateDatabaseWithExchangeData.start(response),
-          );
-        }),
-        catchError(error => of(actions.getExchangeData.failure(error.xhr.response))),
-      );
+    return getJSON(`https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`, {
+      'Access-Control-Allow-Origin': '*',
+    }).pipe(
+      mergeMap((response) => {
+        const { base, date, rates } = response;
+        return of(
+          actions.getExchangeData.success({
+            base,
+            date,
+            ...rates,
+            dateLastUpdated: payload.toString(),
+          }),
+          actions.updateDatabaseWithExchangeData.start(response),
+        );
+      }),
+      catchError(error => of(actions.getExchangeData.failure(error.xhr.response))),
+    );
   }),
 );
 
@@ -90,7 +88,7 @@ export const updateDatabaseWithExchangeDataEpic = (action$, state$, { post }) =>
  * @param {*} state$ State stream
  * @param {*} param2 Dependencies
  */
-export const getHistoricalExchangeDataEpic = (action$, state$, { get }) => action$.pipe(
+export const getHistoricalExchangeDataEpic = (action$, state$, { getJSON }) => action$.pipe(
   ofType(actions.getHistoricalExchangeData.START),
   withLatestFrom(action$),
   mergeMap(([, action]) => {
@@ -99,11 +97,9 @@ export const getHistoricalExchangeDataEpic = (action$, state$, { get }) => actio
     const requests = [];
     for (let i = 0; i < 91; i += 1) {
       const dateString = formatDate(dateTime);
-      requests.push(get({
-        url: `https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`, 
-        responseType: 'json',
-        crossDomain: true,
-    }));
+      requests.push(getJSON(`https://api.openrates.io/${dateString}?symbols=GBP,EUR,AUD,CAD&base=USD`, {
+        'Access-Control-Allow-Origin': '*',
+      }));
       dateTime -= dayInMilliseconds;
     }
     const request = of(requests);

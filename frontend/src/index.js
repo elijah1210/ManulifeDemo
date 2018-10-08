@@ -21,7 +21,7 @@ import registerServiceWorker from './registerServiceWorker';
  */
 const epicMiddleware = createEpicMiddleware({
   dependencies: {
-    get: ajax.get,
+    getJSON: ajax.getJSON,
     post: ajax.post,
   },
 });
